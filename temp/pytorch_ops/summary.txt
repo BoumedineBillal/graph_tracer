@@ -1,0 +1,8 @@
+PyTorch Operations Summary
+========================
+
+Total operations: 1526
+  - torch namespace: 729
+  - F namespace: 139
+  - tensor methods: 658
+

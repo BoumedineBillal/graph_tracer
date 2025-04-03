@@ -1,0 +1,33 @@
+
+PyTorch-Tracer:×
+2
+tensor_0
+tensor_1tensor_2	__add___0"__add__
+2
+tensor_0
+tensor_2tensor_3	__mul___1"__mul__
+:
+tensor_3
+tensor_1tensor_4__truediv___2"__truediv__
+(
+tensor_5tensor_6	__mul___3"__mul__TensorFlowGraphZ
+tensor_0
+
+
+Z
+tensor_1
+
+
+Z
+tensor_5
+
+
+b
+tensor_4
+
+
+b
+tensor_6
+
+
+B
