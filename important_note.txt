@@ -1,0 +1,19 @@
+f.conv2d_2 --> tensor_with_id777 --> in place relu_1 --> tensor_with_id777 --> f.conv2d_2 --> tensor_with_id776
+
+
+f.conv2d_2 will see that f.conv2d_2 tensor_with_id777 is comming from the operation relu_1 and f.conv2d_2 sow i shold fixe this.
+fixing in place operations.
+
+to fixe this i can update a counter for the same tensor when its produced again by difrent operation
+
+sow it will be apeer in the the first 
+   as output with                    as output 
+   counter = 0                       with counter = 0
+f.conv2d_2 --> tensor_with_id777 --> in place relu_1
+
+then  it will be apeer in the secend production by 
+   as output with                    as output 
+   counter = 1                       with counter = 1
+in place relu_1 --> tensor_with_id777 --> f.conv2d_2
+
+this informations must be used in the tensor info 
