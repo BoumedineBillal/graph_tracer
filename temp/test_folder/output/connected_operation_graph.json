@@ -1,0 +1,140 @@
+{
+  "name": "ConnectedOperationFlow",
+  "inputs": [
+    "tensor_1982341966080",
+    "tensor_1982341964000",
+    "tensor_1982341964320",
+    "tensor_1982341963840",
+    "tensor_1982341964480",
+    "tensor_1982341965120",
+    "tensor_1982341965280",
+    "tensor_1982341965440",
+    "tensor_1982341965600",
+    "tensor_1982341964960",
+    "tensor_1982341966240",
+    "tensor_1982341964240",
+    "tensor_1982314699568",
+    "tensor_1982341966400",
+    "tensor_1982360206208",
+    "tensor_1982341965760"
+  ],
+  "outputs": [
+    "tensor_1982360205168",
+    "tensor_1982360206288"
+  ],
+  "nodes": [
+    {
+      "name": "F.conv2d_0",
+      "op_type": "conv2d",
+      "inputs": [
+        "tensor_1982341966080",
+        "tensor_1982341963840",
+        "tensor_1982341964000"
+      ],
+      "outputs": [
+        "tensor_1982359056032"
+      ],
+      "attributes": {}
+    },
+    {
+      "name": "torch.batch_norm_2",
+      "op_type": "batch_norm",
+      "inputs": [
+        "tensor_1982359056032",
+        "tensor_1982341964240",
+        "tensor_1982341964320",
+        "tensor_1982314699568",
+        "tensor_1982341964480"
+      ],
+      "outputs": [
+        "tensor_1982360121888"
+      ],
+      "attributes": {}
+    },
+    {
+      "name": "torch.relu_5",
+      "op_type": "relu",
+      "inputs": [
+        "tensor_1982360121888"
+      ],
+      "outputs": [
+        "tensor_1982360122448"
+      ],
+      "attributes": {}
+    },
+    {
+      "name": "torch.max_pool2d_8",
+      "op_type": "max_pool2d",
+      "inputs": [
+        "tensor_1982360122448"
+      ],
+      "outputs": [
+        "tensor_1982360123328"
+      ],
+      "attributes": {}
+    },
+    {
+      "name": "F.conv2d_10",
+      "op_type": "conv2d",
+      "inputs": [
+        "tensor_1982360123328",
+        "tensor_1982341965120",
+        "tensor_1982341965280"
+      ],
+      "outputs": [
+        "tensor_1982360124368"
+      ],
+      "attributes": {}
+    },
+    {
+      "name": "torch.batch_norm_12",
+      "op_type": "batch_norm",
+      "inputs": [
+        "tensor_1982360124368",
+        "tensor_1982341965440",
+        "tensor_1982341965600",
+        "tensor_1982341964960",
+        "tensor_1982341965760"
+      ],
+      "outputs": [
+        "tensor_1982360203888"
+      ],
+      "attributes": {}
+    },
+    {
+      "name": "torch.relu_15",
+      "op_type": "relu",
+      "inputs": [
+        "tensor_1982360203888"
+      ],
+      "outputs": [
+        "tensor_1982360204368"
+      ],
+      "attributes": {}
+    },
+    {
+      "name": "torch.max_pool2d_18",
+      "op_type": "max_pool2d",
+      "inputs": [
+        "tensor_1982360204368"
+      ],
+      "outputs": [
+        "tensor_1982360205168"
+      ],
+      "attributes": {}
+    },
+    {
+      "name": "F.linear_20",
+      "op_type": "linear",
+      "inputs": [
+        "tensor_1982360206208",
+        "tensor_1982341966240",
+        "tensor_1982341966400"
+      ],
+      "outputs": [
+        "tensor_1982360206288"
+      ],
+      "attributes": {}
+    }
+  ]
+}
