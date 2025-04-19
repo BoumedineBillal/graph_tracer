@@ -176,7 +176,60 @@ class SimpleModel(nn.Module):
         x = self.fc(x)
         return x
 
+class CustomModel(nn.Module):
+    def __init__(self, in_channels=3, num_classes=10):
+        super(CustomModel, self).__init__()
+        
+        # Initial convolutional block
+        self.conv1 = nn.Conv2d(in_channels, 16, kernel_size=3, padding=1)
+        self.bn1 = nn.BatchNorm2d(16)
+        
+        # Second convolutional block - path A
+        self.conv2a = nn.Conv2d(16, 32, kernel_size=3, padding=1)
+        self.bn2a = nn.BatchNorm2d(32)
+        
+        # Second convolutional block - path B
+        self.conv2b = nn.Conv2d(16, 32, kernel_size=1)
+        self.bn2b = nn.BatchNorm2d(32)
+        
+        # Third convolutional block
+        self.conv3 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
+        self.bn3 = nn.BatchNorm2d(64)
+        
+        # Fourth convolutional block - residual connection
+        self.conv4 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
+        self.bn4 = nn.BatchNorm2d(64)
+        
+        # Final classification layer
+        self.pool = nn.AdaptiveAvgPool2d(1)
+        self.fc = nn.Linear(64, num_classes)
 
+    def forward(self, x):
+        # Initial block
+        x = F.relu(self.bn1(self.conv1(x)))
+        
+        # Parallel paths
+        path_a = F.relu(self.bn2a(self.conv2a(x)))
+        path_b = F.relu(self.bn2b(self.conv2b(x)))
+        
+        # Concatenate paths
+        x = torch.cat([path_a, path_b], dim=1)
+        
+        # Third block
+        x = F.relu(self.bn3(self.conv3(x)))
+        
+        # Residual connection
+        identity = x
+        x = self.bn4(self.conv4(x))
+        x = x + identity  # Add operation (residual connection)
+        x = F.relu(x)
+        
+        # Classification
+        x = self.pool(x)
+        x = x.view(x.size(0), -1)
+        x = self.fc(x)
+        
+        return x
 
 
 
@@ -185,7 +238,7 @@ class SimpleModel(nn.Module):
 # Only run this if the file is executed directly
 if __name__ == "__main__":
     # Create model and test input
-    model = SimpleModel()
+    model = CustomModel()
     test_input = torch.randn(1, 3, 8, 8)
     
     # Trace tensor IDs
