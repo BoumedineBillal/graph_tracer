@@ -7,7 +7,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import functools
 import contextlib
-import time
 from typing import Any, List, Dict, Tuple, Optional, Set, Union
 import onnx
 from onnx import helper, TensorProto
@@ -19,22 +18,18 @@ from onnx import helper, TensorProto
 def extract_tensor_ids(args):
     """
     Extract tensor IDs from arguments, handling nested structures.
-    Creates unique IDs using tensor ID + current timestamp to avoid ID reuse issues.
     
     Args:
         args: The arguments to search for tensors
         
     Returns:
-        List of tuples (tensor_unique_id, tensor_shape)
+        List of tuples (tensor_id, tensor_shape)
     """
     tensor_ids = []
-    current_time = time.time()
     
     def _extract_from_item(item):
         if isinstance(item, torch.Tensor):
-            # Create unique ID using tensor ID and timestamp to prevent reuse issues
-            unique_id = f"{id(item)}_{current_time}"
-            tensor_ids.append((unique_id, list(item.shape)))
+            tensor_ids.append((id(item), list(item.shape)))
         elif isinstance(item, (list, tuple)):
             for sub_item in item:
                 _extract_from_item(sub_item)
@@ -49,54 +44,72 @@ def extract_tensor_ids(args):
 
 
 def format_tensor_ids(tensor_ids):
-    """Format unique tensor IDs for printing"""
-    return [f"Tensor(unique_id={tid}, shape={shape})" for tid, shape in tensor_ids]
+    """Format tensor IDs for printing"""
+    return [f"Tensor(id={tid}, shape={shape})" for tid, shape in tensor_ids]
 
 #####################################################
 # PART 2: Connected Operation Tracing System
 #####################################################
 
 class OperationTracer:
-    """Traces operations by their connections through tensors with unique IDs"""
+    """Traces operations by their connections through tensors"""
     
     def __init__(self):
         # Dictionary of known operations {op_id: operation_record}
         self.operations = {}
         
-        # Set of known tensor unique IDs
+        # Set of known tensor IDs
         self.known_tensors = set()
-        
-        # Dictionary to map original tensor IDs to their most recent unique IDs
-        # This helps with proper tracking when tensor IDs are reused
-        self.tensor_id_mapping = {}
         
         # Next operation ID
         self.next_op_id = 0
+        
+        # Counter for generating replacement IDs
+        self.next_replacement_id = 0
     
     def register_input_tensors(self, tensors):
-        """Register initial input tensors with unique IDs"""
-        current_time = time.time()
+        """Register initial input tensors"""
         for tensor in tensors:
-            # Create unique ID for input tensor
-            unique_id = f"{id(tensor)}_{current_time}"
-            # Store the mapping from original ID to unique ID
-            self.tensor_id_mapping[id(tensor)] = unique_id
-            # Add to known tensors
-            self.known_tensors.add(unique_id)
+            self.known_tensors.add(id(tensor))
     
     def record_operation(self, op_name, input_tensor_ids, output_tensor_ids):
         """Record an operation if it uses known tensors"""
         # Check if connected to known tensors
         connected = False
-        for unique_id, _ in input_tensor_ids:
-            if unique_id in self.known_tensors:
+        for tid, _ in input_tensor_ids:
+            if tid in self.known_tensors:
                 connected = True
                 break
                 
         if not connected:
             return None
+        
+        # Check for ID conflicts in outputs
+        for tid, shape in output_tensor_ids:
+            if tid in self.known_tensors:
+                # This ID is already in use - create a new one for previous operations
+                new_id = f"generated_{self.next_replacement_id}"
+                self.next_replacement_id += 1
+                
+                # Update all previous operations that use this ID
+                for op in self.operations.values():
+                    # Update inputs
+                    for i, (input_tid, input_shape) in enumerate(op["inputs"]):
+                        if input_tid == tid:
+                            op["inputs"][i] = (new_id, input_shape)
+                    
+                    # Update outputs
+                    for i, (output_tid, output_shape) in enumerate(op["outputs"]):
+                        if output_tid == tid:
+                            op["outputs"][i] = (new_id, output_shape)
+                
+                # Replace old ID with new ID in known tensors
+                self.known_tensors.remove(tid)
+                self.known_tensors.add(new_id)
+                # Note: We don't modify output_tensor_ids since this operation
+                # will use the original ID that is now free
             
-        # Create operation record
+        # Create operation record (output_tensor_ids is unchanged)
         op_id = self.next_op_id
         self.next_op_id += 1
         
@@ -111,15 +124,8 @@ class OperationTracer:
         self.operations[op_id] = operation
         
         # Add output tensors to known set
-        for tensor_id, _ in output_tensor_ids:
-            current_time = time.time()
-            #print(current_time)
-            # Create unique ID for input tensor
-            unique_id = f"{tensor_id}_{current_time}"
-            # Store the mapping from original ID to unique ID
-            self.tensor_id_mapping[tensor_id] = unique_id
-            # Add to known tensors
-            self.known_tensors.add(unique_id)
+        for tid, _ in output_tensor_ids:
+            self.known_tensors.add(tid)
             
         return op_id
         
@@ -137,8 +143,8 @@ class OperationTracer:
         # Find operations that consume this operation's outputs
         next_ops = []
         
-        # Output tensor unique IDs from this operation
-        output_tids = set(unique_id for unique_id, _ in op["outputs"])
+        # Output tensor IDs from this operation
+        output_tids = set(tid for tid, _ in op["outputs"])
         
         # Find operations that use these output tensors as inputs
         for other_id, other_op in self.operations.items():
@@ -146,8 +152,8 @@ class OperationTracer:
                 continue
                 
             # Check if any input tensor of other_op is in our outputs
-            for unique_id, _ in other_op["inputs"]:
-                if unique_id in output_tids:
+            for tid, _ in other_op["inputs"]:
+                if tid in output_tids:
                     next_ops.append(other_id)
                     break
                     
@@ -284,29 +290,21 @@ def trace_tensor_ids(functions_to_trace=None, input_tensors=None):
 
 def create_onnx_visualization(operations, output_path="model_visualization.onnx"):
     """
-    Create an ONNX visualization from traced operations with unique tensor IDs
+    Create an ONNX visualization from traced operations
     
     Args:
         operations: List of operation records from the tracer
         output_path: Path to save the ONNX file
     """
     # Create mappings for tensors
-    tensor_names = {}  # Maps unique tensor IDs to ONNX tensor names
+    tensor_names = {}  # Maps tensor IDs to names
     nodes = []
     
     # Process all tensors first to create consistent naming
     for op in operations:
-        for unique_id, shape in op["inputs"] + op["outputs"]:
-            if unique_id not in tensor_names:
-                # Handle both string and integer IDs
-                if isinstance(unique_id, str) and '_' in unique_id:
-                    # Extract the original tensor ID part from the unique ID string
-                    original_id = unique_id.split('_')[0]
-                else:
-                    # If it's still an integer or doesn't have the expected format
-                    original_id = str(unique_id)
-                
-                tensor_names[unique_id] = f"tensor_{original_id}"
+        for tid, shape in op["inputs"] + op["outputs"]:
+            if tid not in tensor_names:
+                tensor_names[tid] = f"tensor_{tid}"
     
     # Create a node for each operation
     for i, op in enumerate(operations):
@@ -314,8 +312,8 @@ def create_onnx_visualization(operations, output_path="model_visualization.onnx"
         op_name = op["name"]
         
         # Get input and output names
-        input_names = [tensor_names[unique_id] for unique_id, _ in op["inputs"]]
-        output_names = [tensor_names[unique_id] for unique_id, _ in op["outputs"]]
+        input_names = [tensor_names[tid] for tid, _ in op["inputs"]]
+        output_names = [tensor_names[tid] for tid, _ in op["outputs"]]
         
         # Create node (simplified, just for visualization)
         node = helper.make_node(
@@ -334,16 +332,16 @@ def create_onnx_visualization(operations, output_path="model_visualization.onnx"
     
     # First operation's inputs as graph inputs
     if operations:
-        for unique_id, shape in operations[0]["inputs"]:
+        for tid, shape in operations[0]["inputs"]:
             inputs.append(helper.make_tensor_value_info(
-                tensor_names[unique_id], TensorProto.FLOAT, shape
+                tensor_names[tid], TensorProto.FLOAT, shape
             ))
     
     # Last operation's outputs as graph outputs
     if operations:
-        for unique_id, shape in operations[-1]["outputs"]:
+        for tid, shape in operations[-1]["outputs"]:
             outputs.append(helper.make_tensor_value_info(
-                tensor_names[unique_id], TensorProto.FLOAT, shape
+                tensor_names[tid], TensorProto.FLOAT, shape
             ))
     
     # Create graph

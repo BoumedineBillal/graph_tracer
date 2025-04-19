@@ -1,0 +1,70 @@
+Testing with context manager for operation tracing:
+Start tracing operations
+Hello I'm the operation F.conv2d with args ['Tensor(id=2574761739504, shape=[1, 3, 8, 8])', 'Tensor(id=2574762513328, shape=[16, 3, 3, 3])', 'Tensor(id=2574762513408, shape=[16])', (1, 1), (1, 1), (1, 1), 1]
+Hello I'm the operation F.conv2d with outputs Tensor(id=2574762761488, shape=[1, 16, 8, 8])
+Hello I'm the operation tensor.add_ with args ['Tensor(id=2574762513808, shape=[])', 1]
+Hello I'm the operation tensor.add_ with outputs Tensor(id=2574762513808, shape=[])
+Hello I'm the operation F.batch_norm with args ['Tensor(id=2574762761488, shape=[1, 16, 8, 8])', 'Tensor(id=2574761715968, shape=[16])', 'Tensor(id=2574762513648, shape=[16])', 'Tensor(id=2574762513488, shape=[16])', 'Tensor(id=2574762513568, shape=[16])', True, 0.1, 1e-05]
+Hello I'm the operation F.has_torch_function_variadic with args ['Tensor(id=2574762761488, shape=[1, 16, 8, 8])', 'Tensor(id=2574761715968, shape=[16])', 'Tensor(id=2574762513648, shape=[16])', 'Tensor(id=2574762513488, shape=[16])', 'Tensor(id=2574762513568, shape=[16])']
+Hello I'm the operation F.has_torch_function_variadic with outputs False
+Hello I'm the operation F.batch_norm with outputs Tensor(id=2574762222112, shape=[1, 16, 8, 8])
+Hello I'm the operation F.relu with args ['Tensor(id=2574762222112, shape=[1, 16, 8, 8])']
+Hello I'm the operation F.has_torch_function_unary with args ['Tensor(id=2574762222112, shape=[1, 16, 8, 8])']
+Hello I'm the operation F.has_torch_function_unary with outputs False
+Hello I'm the operation F.relu with outputs Tensor(id=2574762222192, shape=[1, 16, 8, 8])
+Hello I'm the operation F.conv2d with args ['Tensor(id=2574762222192, shape=[1, 16, 8, 8])', 'Tensor(id=2574762514048, shape=[32, 16, 3, 3])', 'Tensor(id=2574762514128, shape=[32])', (1, 1), (1, 1), (1, 1), 1]
+Hello I'm the operation F.conv2d with outputs Tensor(id=2574762222272, shape=[1, 32, 8, 8])
+Hello I'm the operation tensor.add_ with args ['Tensor(id=2574762513728, shape=[])', 1]
+Hello I'm the operation tensor.add_ with outputs Tensor(id=2574762513728, shape=[])
+Hello I'm the operation F.batch_norm with args ['Tensor(id=2574762222272, shape=[1, 32, 8, 8])', 'Tensor(id=2574762513968, shape=[32])', 'Tensor(id=2574762514368, shape=[32])', 'Tensor(id=2574762514208, shape=[32])', 'Tensor(id=2574762514288, shape=[32])', True, 0.1, 1e-05]
+Hello I'm the operation F.has_torch_function_variadic with args ['Tensor(id=2574762222272, shape=[1, 32, 8, 8])', 'Tensor(id=2574762513968, shape=[32])', 'Tensor(id=2574762514368, shape=[32])', 'Tensor(id=2574762514208, shape=[32])', 'Tensor(id=2574762514288, shape=[32])']
+Hello I'm the operation F.has_torch_function_variadic with outputs False
+Hello I'm the operation F.batch_norm with outputs Tensor(id=2574762222112, shape=[1, 32, 8, 8])
+Hello I'm the operation F.relu with args ['Tensor(id=2574762222112, shape=[1, 32, 8, 8])']
+Hello I'm the operation F.has_torch_function_unary with args ['Tensor(id=2574762222112, shape=[1, 32, 8, 8])']
+Hello I'm the operation F.has_torch_function_unary with outputs False
+Hello I'm the operation F.relu with outputs Tensor(id=2574762222352, shape=[1, 32, 8, 8])
+Hello I'm the operation F.conv2d with args ['Tensor(id=2574762222192, shape=[1, 16, 8, 8])', 'Tensor(id=2574762514688, shape=[32, 16, 1, 1])', 'Tensor(id=2574762514768, shape=[32])', (1, 1), (0, 0), (1, 1), 1]
+Hello I'm the operation F.conv2d with outputs Tensor(id=2574762222432, shape=[1, 32, 8, 8])
+Hello I'm the operation tensor.add_ with args ['Tensor(id=2574762514448, shape=[])', 1]
+Hello I'm the operation tensor.add_ with outputs Tensor(id=2574762514448, shape=[])
+Hello I'm the operation F.batch_norm with args ['Tensor(id=2574762222432, shape=[1, 32, 8, 8])', 'Tensor(id=2574762514608, shape=[32])', 'Tensor(id=2574762515008, shape=[32])', 'Tensor(id=2574762514848, shape=[32])', 'Tensor(id=2574762514928, shape=[32])', True, 0.1, 1e-05]
+Hello I'm the operation F.has_torch_function_variadic with args ['Tensor(id=2574762222432, shape=[1, 32, 8, 8])', 'Tensor(id=2574762514608, shape=[32])', 'Tensor(id=2574762515008, shape=[32])', 'Tensor(id=2574762514848, shape=[32])', 'Tensor(id=2574762514928, shape=[32])']
+Hello I'm the operation F.has_torch_function_variadic with outputs False
+Hello I'm the operation F.batch_norm with outputs Tensor(id=2574762222112, shape=[1, 32, 8, 8])
+Hello I'm the operation F.relu with args ['Tensor(id=2574762222112, shape=[1, 32, 8, 8])']
+Hello I'm the operation F.has_torch_function_unary with args ['Tensor(id=2574762222112, shape=[1, 32, 8, 8])']
+Hello I'm the operation F.has_torch_function_unary with outputs False
+Hello I'm the operation F.relu with outputs Tensor(id=2574762222512, shape=[1, 32, 8, 8])
+Hello I'm the operation F.conv2d with args ['Tensor(id=2574762222112, shape=[1, 64, 8, 8])', 'Tensor(id=2574762515328, shape=[64, 64, 3, 3])', 'Tensor(id=2574762515408, shape=[64])', (1, 1), (1, 1), (1, 1), 1]
+Hello I'm the operation F.conv2d with outputs Tensor(id=2574762222672, shape=[1, 64, 8, 8])
+Hello I'm the operation tensor.add_ with args ['Tensor(id=2574762515088, shape=[])', 1]
+Hello I'm the operation tensor.add_ with outputs Tensor(id=2574762515088, shape=[])
+Hello I'm the operation F.batch_norm with args ['Tensor(id=2574762222672, shape=[1, 64, 8, 8])', 'Tensor(id=2574762515248, shape=[64])', 'Tensor(id=2574762515648, shape=[64])', 'Tensor(id=2574762515488, shape=[64])', 'Tensor(id=2574762515568, shape=[64])', True, 0.1, 1e-05]
+Hello I'm the operation F.has_torch_function_variadic with args ['Tensor(id=2574762222672, shape=[1, 64, 8, 8])', 'Tensor(id=2574762515248, shape=[64])', 'Tensor(id=2574762515648, shape=[64])', 'Tensor(id=2574762515488, shape=[64])', 'Tensor(id=2574762515568, shape=[64])']
+Hello I'm the operation F.has_torch_function_variadic with outputs False
+Hello I'm the operation F.batch_norm with outputs Tensor(id=2574762222592, shape=[1, 64, 8, 8])
+Hello I'm the operation F.relu with args ['Tensor(id=2574762222592, shape=[1, 64, 8, 8])']
+Hello I'm the operation F.has_torch_function_unary with args ['Tensor(id=2574762222592, shape=[1, 64, 8, 8])']
+Hello I'm the operation F.has_torch_function_unary with outputs False
+Hello I'm the operation F.relu with outputs Tensor(id=2574762222752, shape=[1, 64, 8, 8])
+Hello I'm the operation F.conv2d with args ['Tensor(id=2574762222752, shape=[1, 64, 8, 8])', 'Tensor(id=2574762515968, shape=[64, 64, 3, 3])', 'Tensor(id=2574762516048, shape=[64])', (1, 1), (1, 1), (1, 1), 1]
+Hello I'm the operation F.conv2d with outputs Tensor(id=2574762222832, shape=[1, 64, 8, 8])
+Hello I'm the operation tensor.add_ with args ['Tensor(id=2574762515728, shape=[])', 1]
+Hello I'm the operation tensor.add_ with outputs Tensor(id=2574762515728, shape=[])
+Hello I'm the operation F.batch_norm with args ['Tensor(id=2574762222832, shape=[1, 64, 8, 8])', 'Tensor(id=2574762515888, shape=[64])', 'Tensor(id=2574762516288, shape=[64])', 'Tensor(id=2574762516128, shape=[64])', 'Tensor(id=2574762516208, shape=[64])', True, 0.1, 1e-05]
+Hello I'm the operation F.has_torch_function_variadic with args ['Tensor(id=2574762222832, shape=[1, 64, 8, 8])', 'Tensor(id=2574762515888, shape=[64])', 'Tensor(id=2574762516288, shape=[64])', 'Tensor(id=2574762516128, shape=[64])', 'Tensor(id=2574762516208, shape=[64])']
+Hello I'm the operation F.has_torch_function_variadic with outputs False
+Hello I'm the operation F.batch_norm with outputs Tensor(id=2574762222592, shape=[1, 64, 8, 8])
+Hello I'm the operation F.relu with args ['Tensor(id=2574762222912, shape=[1, 64, 8, 8])']
+Hello I'm the operation F.has_torch_function_unary with args ['Tensor(id=2574762222912, shape=[1, 64, 8, 8])']
+Hello I'm the operation F.has_torch_function_unary with outputs False
+Hello I'm the operation F.relu with outputs Tensor(id=2574762222592, shape=[1, 64, 8, 8])
+Hello I'm the operation F.adaptive_avg_pool2d with args ['Tensor(id=2574762222592, shape=[1, 64, 8, 8])', 1]
+Hello I'm the operation F.has_torch_function_unary with args ['Tensor(id=2574762222592, shape=[1, 64, 8, 8])']
+Hello I'm the operation F.has_torch_function_unary with outputs False
+Hello I'm the operation F.adaptive_avg_pool2d with outputs Tensor(id=2574762222912, shape=[1, 64, 1, 1])
+Hello I'm the operation F.linear with args ['Tensor(id=2574762222592, shape=[1, 64])', 'Tensor(id=2574762573968, shape=[10, 64])', 'Tensor(id=2574762574048, shape=[10])']
+Hello I'm the operation F.linear with outputs Tensor(id=2574762222992, shape=[1, 10])
+End tracing operations
+Model execution completed with traced operations
