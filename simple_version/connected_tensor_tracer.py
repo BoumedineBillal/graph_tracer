@@ -90,7 +90,13 @@ class OperationTracer:
                 # This ID is already in use - create a new one for previous operations
                 new_id = f"generated_{self.next_replacement_id}"
                 self.next_replacement_id += 1
-                
+
+                # For in-place operations: update the current operation's input IDs first
+                # if this output ID is also in the inputs of this operation
+                for i, (input_tid, input_shape) in enumerate(input_tensor_ids):
+                    if input_tid == tid:
+                        input_tensor_ids[i] = (new_id, input_shape)
+        
                 # Update all previous operations that use this ID
                 for op in self.operations.values():
                     # Update inputs
@@ -172,7 +178,7 @@ class TensorIdTracer(contextlib.ContextDecorator):
     """
     def __init__(self, op_name):
         self.op_name = op_name
-    
+        print("*****", self.op_name)
     def __enter__(self):
         return self
     
@@ -198,7 +204,7 @@ class TensorIdTracer(contextlib.ContextDecorator):
             
             # Print input and output tensor IDs together
             print(f"Operation {self.op_name} input tensors: {format_tensor_ids(input_tensor_ids)} output tensors: {format_tensor_ids(output_tensor_ids)}")
-            
+            print("*****---", self.op_name)
             # Record operation if connected
             op_id = operation_tracer.record_operation(self.op_name, input_tensor_ids, output_tensor_ids)
             if op_id is not None:
@@ -398,11 +404,11 @@ class CustomModel(nn.Module):
 
     def forward(self, x):
         # Initial block
-        x = F.relu(self.bn1(self.conv1(x)))
+        x = F.relu(self.bn1(self.conv1(x)),inplace=True)
         
         # Parallel paths
-        path_a = F.relu(self.bn2a(self.conv2a(x)))
-        path_b = F.relu(self.bn2b(self.conv2b(x)))
+        path_a = F.relu(self.bn2a(self.conv2a(x)),inplace=True)
+        path_b = F.relu(self.bn2b(self.conv2b(x)),inplace=True)
         
         # Concatenate paths
         x = torch.cat([path_a, path_b], dim=1)
@@ -414,6 +420,7 @@ class CustomModel(nn.Module):
         identity = x
         x = self.bn4(self.conv4(x))
         x = x + identity  # Add operation (residual connection)
+        x = torch.add(x,x)
         x = F.relu(x)
         
         # Classification

@@ -57,6 +57,8 @@ PyTorch reuses memory addresses (tensor IDs) when tensors go out of scope. This 
 
 3. **Graph Inconsistency**: This leads to a misleading computation graph that doesn't accurately represent the model's architecture.
 
+4. **In-place Operations**: In-place operations like `relu(inplace=True)` reuse the same tensor ID for both input and output, creating additional challenges for correct connection tracking.
+
 ### Our Solution
 
 The Connected Tensor Tracer solves this problem with a novel ID conflict resolution approach:
@@ -71,6 +73,12 @@ def record_operation(self, op_name, input_tensor_ids, output_tensor_ids):
             # This ID is already in use - create a new one for previous operations
             new_id = f"generated_{self.next_replacement_id}"
             self.next_replacement_id += 1
+            
+            # For in-place operations: update the current operation's input IDs first
+            # if this output ID is also in the inputs of this operation
+            for i, (input_tid, input_shape) in enumerate(input_tensor_ids):
+                if input_tid == tid:
+                    input_tensor_ids[i] = (new_id, input_shape)
             
             # Update all previous operations that use this ID
             for op in self.operations.values():
@@ -94,12 +102,48 @@ def record_operation(self, op_name, input_tensor_ids, output_tensor_ids):
 The solution works as follows:
 
 1. **Conflict Detection**: When a new operation produces a tensor with an ID that already exists in our known tensor set, we've detected a reuse case.
+   ```python
+   # Check for ID conflicts in outputs
+   for tid, shape in output_tensor_ids:
+       if tid in self.known_tensors:
+           # Conflict detected
+   ```
 
-2. **Prior References Update**: Instead of changing the new tensor's ID, we update all previous operations that referenced the old ID to use a newly generated unique ID.
+2. **In-place Operation Handling**: For in-place operations where the output tensor has the same ID as one of the input tensors, we update the input tensor ID in the current operation to maintain correct connections.
+   ```python
+   # For in-place operations: update the current operation's input IDs first
+   for i, (input_tid, input_shape) in enumerate(input_tensor_ids):
+       if input_tid == tid:
+           input_tensor_ids[i] = (new_id, input_shape)
+   ```
 
-3. **ID Recycling**: The current operation can then safely use the original ID without conflict, as PyTorch intended.
+3. **Prior References Update**: We update all previous operations that referenced the old ID to use a newly generated unique ID.
+   ```python
+   # Update all previous operations that use this ID
+   for op in self.operations.values():
+       # Update inputs
+       for i, (input_tid, input_shape) in enumerate(op["inputs"]):
+           if input_tid == tid:
+               op["inputs"][i] = (new_id, input_shape)
+       
+       # Update outputs
+       for i, (output_tid, output_shape) in enumerate(op["outputs"]):
+           if output_tid == tid:
+               op["outputs"][i] = (new_id, output_shape)
+   ```
 
-4. **Continuous Adaptation**: This approach continuously adapts to ID reuse as the model executes, maintaining a consistent graph structure.
+4. **ID Recycling**: The current operation can then safely use the original ID without conflict, as PyTorch intended.
+   ```python
+   # No explicit code needed here - by not changing the current output tensor ID,
+   # we allow the natural recycling of the ID as PyTorch intended
+   ```
+
+5. **Continuous Adaptation**: This approach continuously adapts to ID reuse as the model executes, maintaining a consistent graph structure.
+   ```python
+   # Replace old ID with new ID in known tensors
+   self.known_tensors.remove(tid)
+   self.known_tensors.add(new_id)
+   ```
 
 ### Advantages of This Approach
 
@@ -107,9 +151,11 @@ The solution works as follows:
 
 2. **Accuracy**: Correctly represents actual tensor connections without false links.
 
-3. **Efficiency**: Minimal overhead since we only update operations when conflicts occur.
+3. **In-place Support**: Properly handles in-place operations like ReLU with inplace=True.
 
-4. **Simplicity**: No need to maintain complex mapping structures or timestamp-based IDs.
+4. **Efficiency**: Minimal overhead since we only update operations when conflicts occur.
+
+5. **Simplicity**: No need to maintain complex mapping structures or timestamp-based IDs.
 
 ## Implementation Details
 
@@ -128,6 +174,7 @@ The tracer consists of several key components:
 - Only traces operations that are explicitly intercepted by the tracer (must be in the functions_to_trace dictionary)
 - Visualization is simplified compared to full ONNX export from PyTorch
 - Does not trace custom operations unless specifically added
+- While in-place operations are now handled correctly, complex models with multiple in-place operations may require careful analysis
 
 ## Future Improvements
 
@@ -135,6 +182,7 @@ The tracer consists of several key components:
 - Improve visualization with tensor shape information
 - Track gradient flow during backpropagation
 - Add quantitative analysis of computation and memory usage
+- Further enhance in-place operation handling for edge cases
 
 ## Acknowledgements
 
